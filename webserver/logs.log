@@ -1,0 +1,8 @@
+function toString() { [native code] }: GET, /
+function toString() { [native code] }: GET, /next
+function toString() { [native code] }: GET, /bad
+function toString() { [native code] }: GET, /next
+function toString() { [native code] }: GET, /next
+function toString() { [native code] }: GET, /about
+function toString() { [native code] }: GET, /
+function toString() { [native code] }: GET, /help.html
