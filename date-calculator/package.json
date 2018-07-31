@@ -1,0 +1,17 @@
+{
+  "name": "date-calculator",
+  "version": "1.0.0",
+  "description": "Contains 3 methods that return various dates as objects",
+  "main": "date-calendar.test.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Al G",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^23.4.1"
+  },
+  "dependencies": {
+    "date-and-time": "^0.6.2"
+  }
+}
