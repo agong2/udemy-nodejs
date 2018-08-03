@@ -5,21 +5,49 @@ var directionKey = ['before', 'after']
 var ordinalKey = ['first', 'second', 'third', 'fourth', 'fifth', 'last']
 var monthsKey = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
 
-var closestDate = (targetDate, dayOfWeek, direction) => {
-  var dateClone = new Date(targetDate)
-  var dayLowerCase = dayOfWeek.toLowerCase()
-  var directionLowerCase = direction.toLowerCase()
+var lowerCaseAllValues = (object) => {
+  var keys = Object.keys(object)
+  var i
+  for (i = 0; i < keys.length; i++) {
+    if (typeof object[keys[i]] === 'string') {
+      object[keys[i]] = object[keys[i]].toLowerCase()
+    }
+  }
+}
 
-  if (directionLowerCase === directionKey[1]) {
-    do {
-      dateClone = dateAndTime.addDays(dateClone, 1)
-    } while (dateClone.getDay() !== daysOfWeekKey.indexOf(dayLowerCase))
+var requireKey = (object, key, errorMessage) => {
+  if (hasKey(object, key) === false) {
+    throw new Error(errorMessage)
   }
-  if (directionLowerCase === directionKey[0]) {
-    do {
-      dateClone = dateAndTime.addDays(dateClone, -1)
-    } while (dateClone.getDay() !== daysOfWeekKey.indexOf(dayLowerCase))
+}
+
+var requireValidArrayValue = (array, value, errorMessage) => {
+  if (array.includes(value) === false) {
+    throw new Error(errorMessage)
   }
+}
+
+var requireValidDayOfWeek = (dayOfWeek) => {
+  requireValidArrayValue(daysOfWeekKey, dayOfWeek, 'Error: Day of week not found')
+}
+
+var requireValidOrdinal = (ordinal) => {
+  requireValidArrayValue(ordinalKey, ordinal, 'Error: Ordinal not found')
+}
+
+var closestDate = (targetDate, dayOfWeek, direction) => {
+  if (targetDate.toString() === 'Invalid Date') {
+    throw new Error('Error: Invalid date given to closestDate')
+  }
+  var dateClone = new Date(targetDate)
+  dayOfWeek = dayOfWeek.toLowerCase()
+  direction = direction.toLowerCase()
+
+  var daysToAdd = (direction === directionKey[1]) ? 1 : -1
+  do {
+    dateClone = dateAndTime.addDays(dateClone, daysToAdd)
+  } while (dateClone.getDay() !== daysOfWeekKey.indexOf(dayOfWeek))
+
   return dateClone
 }
 
@@ -28,13 +56,9 @@ var hasKey = (obj, keyName) => {
 }
 
 var closestTo = (arg) => {
-  if (hasKey(arg, 'dayOfWeek') === false) {
-    throw new Error('Error: Day of week not found')
-  }
-  var dayLowerCase = arg.dayOfWeek.toLowerCase()
-  if (daysOfWeekKey.includes(dayLowerCase) === false) {
-    throw new Error('Error: Day of week not found')
-  }
+  lowerCaseAllValues(arg)
+  requireKey(arg, 'dayOfWeek', 'Error: Day of week not found')
+  requireValidDayOfWeek(arg.dayOfWeek)
 
   if (hasKey(arg, 'target') === false) {
     arg.target = new Date()
@@ -43,8 +67,8 @@ var closestTo = (arg) => {
   var dateClone = new Date(arg.target)
   dateClone.setHours(0, 0, 0, 0)
 
-  var closestAfter = closestDate(dateClone, dayLowerCase, directionKey[1])
-  var closestBefore = closestDate(dateClone, dayLowerCase, directionKey[0])
+  var closestAfter = closestDate(dateClone, arg.dayOfWeek, directionKey[1])
+  var closestBefore = closestDate(dateClone, arg.dayOfWeek, directionKey[0])
 
   var differenceAfter = dateAndTime.subtract(closestAfter, dateClone).toDays()
   var differenceBefore = dateAndTime.subtract(dateClone, closestBefore).toDays()
@@ -60,44 +84,42 @@ var closestTo = (arg) => {
 }
 
 var nthOfMonth = (arg) => {
-  if (hasKey(arg, 'ordinal') === false) {
-    throw new Error('Error: Ordinal not found')
-  }
-  if (hasKey(arg, 'dayOfWeek') === false) {
-    throw new Error('Error: Day of week not found')
-  }
-  var ordinalLowerCase = arg.ordinal.toLowerCase()
-  var dayLowerCase = arg.dayOfWeek.toLowerCase()
-  if (ordinalKey.includes(ordinalLowerCase) === false) {
-    throw new Error('Error: Ordinal not found')
-  }
-  if (daysOfWeekKey.includes(dayLowerCase) === false) {
-    throw new Error('Error: Day of week not found')
-  }
+  lowerCaseAllValues(arg)
+  requireKey(arg, 'ordinal', 'Error: Ordinal not found')
+  requireValidOrdinal(arg.ordinal)
+  requireKey(arg, 'dayOfWeek', 'Error: Day of week not found')
+  requireValidDayOfWeek(arg.dayOfWeek)
 
   if (hasKey(arg, 'year') === false) {
     arg.year = new Date().getFullYear()
   }
   if (hasKey(arg, 'month') === false) {
     arg.month = monthsKey[new Date().getMonth()]
+  } else if (monthsKey.indexOf(arg.month) === -1) {
+    throw new Error('Error: Month not found')
   }
 
   var date = new Date(arg.year + ' ' + arg.month)
   var ordinalCounter
-  if (date.getDay() === daysOfWeekKey.indexOf(arg.dayOfWeek)) {
+  if (date.getDay() === daysOfWeekKey.indexOf(arg.ordinal)) {
     ordinalCounter = 0
   } else {
     ordinalCounter = -1
   }
 
-  if (ordinalLowerCase === 'last') {
-  //  date = closestDate(date, dayLowerCase, directionKey[1])
+  if (arg.ordinal === 'last') {
+    var firstOfNextMonth = dateAndTime.addMonths(date, 1)
+    return closestDate(firstOfNextMonth, arg.dayOfWeek, 'before')
   }
-  while (ordinalCounter !== ordinalKey.indexOf(ordinalLowerCase)) {
-    date = closestDate(date, dayLowerCase, directionKey[1])
+
+  while (ordinalCounter !== ordinalKey.indexOf(arg.ordinal)) {
+    date = closestDate(date, arg.dayOfWeek, directionKey[1])
     ordinalCounter = ordinalCounter + 1
   }
-  return date
+  if (date.getMonth() === monthsKey.indexOf(arg.month)) {
+    return date
+  }
+  return null
 }
 
 module.exports = {

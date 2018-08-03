@@ -91,11 +91,15 @@ describe('nthOfMonth', () => {
   })
   var yearToTest = 2018
   var monthToTest = 'july'
-  var dayToTest = 'monday'
-  describe(`given the year ${yearToTest}, the month ${monthToTest}, and the day of week ${dayToTest}`, () => {
-    it(`should return the second ${dayToTest} of ${monthToTest}, ${yearToTest} if 'ordinal' is second`, () => {
+  describe(`given the year ${yearToTest}, the month ${monthToTest}, and the day of week monday`, () => {
+    var dayToTest = 'mONDAY'
+    it(`ALAN should return the second ${dayToTest} of ${monthToTest}, ${yearToTest} if 'ordinal' is second`, () => {
       var res = methods.nthOfMonth({year: yearToTest, month: monthToTest, ordinal: 'second', dayOfWeek: dayToTest})
       expect(res).toEqual(new Date('2018 7 9'))
+    })
+    it(`should return NULL if asking for the fifth Monday in February`, () => {
+      var res = methods.nthOfMonth({year: 2018, month: 'february', ordinal: 'fifth', dayOfWeek: 'saturday'})
+      expect(res).toEqual(null)
     })
     it(`should, for both fifth and last, return the same ${dayToTest} of ${monthToTest} ${yearToTest}`, () => {
       var resFifth = methods.nthOfMonth({year: yearToTest, month: monthToTest, ordinal: 'fifth', dayOfWeek: dayToTest})
@@ -105,8 +109,12 @@ describe('nthOfMonth', () => {
       expect(resLast).toEqual(new Date('2018 7 30'))
     })
   })
-  dayToTest = 'wednesday'
-  describe(`given the year ${yearToTest}, the month ${monthToTest}, and the day of week ${dayToTest}`, () => {
+  describe(`given the year ${yearToTest}, the month ${monthToTest}, and the day of week wednesday`, () => {
+    var dayToTest = 'friday'
+    it('should return July 27 if \'ordinal\' is set to fourth', () => {
+      var res = methods.nthOfMonth({year: yearToTest, month: monthToTest, ordinal: 'fourth', dayOfWeek: dayToTest})
+      expect(res).toEqual(new Date('2018 7 27'))
+    })
     it('should return null if \'ordinal\' is set to fifth', () => {
       var res = methods.nthOfMonth({year: yearToTest, month: monthToTest, ordinal: 'fifth', dayOfWeek: dayToTest})
       expect(res).toEqual(null)
@@ -142,6 +150,12 @@ describe('nthOfMonth', () => {
       var resNoMonth = methods.nthOfMonth({year: 2018, ordinal: 'second', dayOfWeek: 'monday'})
       var res = methods.nthOfMonth({year: 2018, month: monthsKey[new Date().getMonth()], ordinal: 'second', dayOfWeek: 'monday'})
       expect(resNoMonth).toEqual(res)
+    })
+    it('should throw a new Error if the given month is not valid', () => {
+      function incorrectMonth () {
+        methods.nthOfMonth({year: 2018, month: 'Abril', ordinal: 'first', dayOfWeek: 'monday'})
+      }
+      expect(incorrectMonth).toThrow('Error: Month not found')
     })
   })
 })
